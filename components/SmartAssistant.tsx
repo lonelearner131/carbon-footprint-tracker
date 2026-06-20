@@ -2,61 +2,22 @@
 
 import React, { useState } from "react";
 import { useCarbonStore } from "@/store/useCarbonStore";
+import { useAiChat } from "@/hooks/useAiChat";
 import { Send } from "lucide-react";
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
-
+/**
+ * SmartAssistant Component.
+ * Provides a context-aware chat interface using the Gemini AI.
+ * Uses strict custom hooks for logic and implements aria-live for screen readers.
+ */
 export const SmartAssistant = () => {
   const { activities } = useCarbonStore();
+  const { messages, loading, sendMessage } = useAiChat(activities);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Hello! I am your AI Carbon Assistant. Ask me anything about your footprint or how to reduce it.",
-    },
-  ]);
-  const [loading, setLoading] = useState(false);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
-
-    const userMessage: Message = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMessage]);
+  const handleSend = () => {
+    sendMessage(input);
     setInput("");
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [...messages, userMessage],
-          context: { activities }, // Passing Zustand state to AI
-        }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setMessages((prev) => [...prev, { role: "assistant", content: data.message }]);
-      } else {
-        console.error("AI Error:", data.error);
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: "Sorry, I ran into an error processing your request." },
-        ]);
-      }
-    } catch (e) {
-      console.error("Request failed:", e);
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Network error occurred." },
-      ]);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -65,10 +26,15 @@ export const SmartAssistant = () => {
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <span>🌿</span> Smart Assistant
         </h2>
-        <p className="text-xs text-muted-foreground">Context-aware recommendations</p>
+        <p className="text-xs text-muted-foreground" id="assistant-desc">Context-aware recommendations</p>
       </div>
       
-      <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
+      <div 
+        className="flex-1 p-4 overflow-y-auto flex flex-col gap-3"
+        aria-live="polite"
+        aria-atomic="false"
+        role="log"
+      >
         {messages.map((msg, idx) => (
           <div
             key={idx}
@@ -86,7 +52,7 @@ export const SmartAssistant = () => {
           </div>
         ))}
         {loading && (
-          <div className="flex justify-start">
+          <div className="flex justify-start" aria-label="AI is thinking">
             <div className="bg-secondary text-secondary-foreground max-w-[80%] rounded-2xl rounded-bl-none px-4 py-2 text-sm animate-pulse">
               Thinking...
             </div>
@@ -95,7 +61,7 @@ export const SmartAssistant = () => {
       </div>
 
       <div className="p-3 border-t bg-muted/10 flex gap-2">
-        <label htmlFor="chat-input" className="sr-only">Type your message</label>
+        <label htmlFor="chat-input" className="sr-only">Type your message for the AI</label>
         <input
           id="chat-input"
           type="text"
@@ -103,13 +69,14 @@ export const SmartAssistant = () => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
           placeholder="Ask about reducing transport emissions..."
-          className="flex-1 bg-background border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          aria-describedby="assistant-desc"
+          className="flex-1 bg-background border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
         />
         <button
           onClick={handleSend}
           disabled={loading || !input.trim()}
-          aria-label="Send message"
-          className="bg-primary hover:bg-primary/90 text-primary-foreground p-2 rounded-full w-10 h-10 flex items-center justify-center disabled:opacity-50 transition-colors"
+          aria-label="Send message to AI assistant"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground p-2 rounded-full w-10 h-10 flex items-center justify-center disabled:opacity-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
         >
           <Send size={18} />
         </button>

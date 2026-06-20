@@ -1,45 +1,19 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import { useCarbonStore } from "@/store/useCarbonStore";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { QuickLog } from "./QuickLog";
-import { Insights } from "./Insights";
+import { PersonalizedInsights } from "./PersonalizedInsights";
+import { EmissionsChart } from "./charts/EmissionsChart";
+import { useCarbonCalculations } from "@/hooks/useCarbonCalculations";
 
-const COLORS = {
-  transport: "#3b82f6", // blue
-  food: "#22c55e", // green
-  energy: "#f59e0b", // yellow
-  shopping: "#ec4899", // pink
-};
-
+/**
+ * Main Dashboard component that aggregates the carbon footprint data.
+ * Displays the emission breakdown chart, quick logging actions, and personalized insights.
+ */
 export const Dashboard = () => {
   const { activities } = useCarbonStore();
-
-  const chartData = useMemo(() => {
-    const dataMap: Record<string, number> = {
-      transport: 0,
-      food: 0,
-      energy: 0,
-      shopping: 0,
-    };
-
-    activities.forEach((activity) => {
-      if (dataMap[activity.category] !== undefined) {
-        dataMap[activity.category] += activity.co2Emissions;
-      }
-    });
-
-    return Object.keys(dataMap).map((key) => ({
-      name: key.charAt(0).toUpperCase() + key.slice(1),
-      value: dataMap[key],
-      fill: COLORS[key as keyof typeof COLORS],
-    }));
-  }, [activities]);
-
-  const totalEmissions = useMemo(() => {
-    return activities.reduce((sum, act) => sum + act.co2Emissions, 0).toFixed(1);
-  }, [activities]);
+  const { chartData, totalEmissions } = useCarbonCalculations(activities);
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-5xl mx-auto p-4 md:p-8">
@@ -60,31 +34,13 @@ export const Dashboard = () => {
               <p className="text-xs text-muted-foreground">Total CO2</p>
             </div>
           </div>
-          <div className="h-64 w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: any) => [`${Number(value).toFixed(2)} kg`, "Emissions"]} />
-                <Legend verticalAlign="bottom" height={36} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <EmissionsChart chartData={chartData} />
         </div>
 
         {/* Side Panel */}
         <div className="flex flex-col gap-6">
           <QuickLog />
-          <Insights />
+          <PersonalizedInsights />
         </div>
       </div>
     </div>
