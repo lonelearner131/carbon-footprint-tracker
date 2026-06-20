@@ -4,7 +4,7 @@ import React from "react";
 import { useCarbonStore } from "@/store/useCarbonStore";
 import { QuickLog } from "./QuickLog";
 import { PersonalizedInsights } from "./PersonalizedInsights";
-import { EmissionsChart } from "./charts/EmissionsChart";
+import { MetricsCard } from "./MetricsCard";
 import { useCarbonCalculations } from "@/hooks/useCarbonCalculations";
 
 /**
@@ -12,37 +12,28 @@ import { useCarbonCalculations } from "@/hooks/useCarbonCalculations";
  * Displays the emission breakdown chart, quick logging actions, and personalized insights.
  */
 export const Dashboard = () => {
-  const { activities } = useCarbonStore();
+  // Use atomic selectors
+  const activities = useCarbonStore((state) => state.activities);
   const { chartData, totalEmissions } = useCarbonCalculations(activities);
 
   return (
-    <div className="flex flex-col gap-8 w-full max-w-5xl mx-auto p-4 md:p-8">
+    <main className="flex flex-col gap-8 w-full max-w-5xl mx-auto p-4 md:p-8">
       <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Your Hub</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Understand Your Footprint</h1>
+        <p className="text-slate-700 dark:text-slate-300 text-sm">
           Track, understand, and reduce your carbon footprint.
         </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Chart Section */}
-        <div className="md:col-span-2 bg-card text-card-foreground border rounded-xl p-6 shadow-sm flex flex-col gap-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Emissions Breakdown</h2>
-            <div className="text-right">
-              <p className="text-2xl font-bold">{totalEmissions} kg</p>
-              <p className="text-xs text-muted-foreground">Total CO2</p>
-            </div>
-          </div>
-          <EmissionsChart chartData={chartData} />
-        </div>
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6" aria-label="Dashboard Overview">
+        <MetricsCard totalEmissions={totalEmissions} chartData={chartData} />
 
         {/* Side Panel */}
-        <div className="flex flex-col gap-6">
+        <aside className="flex flex-col gap-6" aria-label="Action Panel">
           <QuickLog />
           <PersonalizedInsights />
-        </div>
-      </div>
-    </div>
+        </aside>
+      </section>
+    </main>
   );
 };

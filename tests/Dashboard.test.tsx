@@ -13,18 +13,18 @@ jest.mock('recharts', () => {
 });
 
 describe('Dashboard Component', () => {
-  it('renders correctly with default state', () => {
+  it('renders correctly with default state', async () => {
     render(<Dashboard />);
     
     // Check main headers
-    expect(screen.getByText('Your Hub')).toBeInTheDocument();
+    expect(screen.getByText('Understand Your Footprint')).toBeInTheDocument();
     expect(screen.getByText('Emissions Breakdown')).toBeInTheDocument();
     
-    // Check if chart is rendered
-    expect(screen.getByTestId('pie-chart')).toBeInTheDocument();
+    // Check if chart is rendered eventually
+    expect(await screen.findByTestId('pie-chart')).toBeInTheDocument();
 
     // Check if side components rendered
     expect(screen.getByText('Quick Log')).toBeInTheDocument();
-    expect(screen.getByText('Personalized Insights')).toBeInTheDocument();
+    expect(screen.getByText('Personalized Insights & Simple Actions')).toBeInTheDocument();
   });
 });

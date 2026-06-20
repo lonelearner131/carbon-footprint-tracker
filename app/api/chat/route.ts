@@ -20,11 +20,11 @@ const chatRequestSchema = z.object({
   context: z.object({
     activities: z.array(
       z.object({
-        id: z.string(),
+        id: z.string().trim().min(1).max(100),
         category: z.enum(['transport', 'food', 'energy', 'shopping']),
-        description: z.string(),
-        co2Emissions: z.number(),
-        timestamp: z.string()
+        description: z.string().trim().min(1).max(100),
+        co2Emissions: z.number().min(0).max(1000),
+        timestamp: z.string().trim().min(1).max(100)
       })
     ).optional()
   }).optional()

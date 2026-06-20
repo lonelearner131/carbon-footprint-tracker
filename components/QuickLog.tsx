@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useCarbonStore } from "@/store/useCarbonStore";
 import { z } from "zod";
 import type { ActivityCategory } from "@/types";
@@ -11,7 +11,7 @@ import type { ActivityCategory } from "@/types";
  */
 const logSchema = z.object({
   category: z.enum(["transport", "food", "energy", "shopping"]),
-  description: z.string().trim().min(3, "Description too short").max(100, "Description too long"),
+  description: z.string().trim().min(1, "Description too short").max(100, "Description too long"),
   co2Emissions: z.number().min(0.01, "Must be > 0").max(1000, "Value too high"),
 });
 
@@ -21,11 +21,12 @@ const logSchema = z.object({
  * Uses strict schema validation before updating the store.
  */
 export const QuickLog = () => {
-  const { addActivity } = useCarbonStore();
+  // Use atomic selector
+  const addActivity = useCarbonStore((state) => state.addActivity);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleQuickLog = (
+  const handleQuickLog = useCallback((
     category: ActivityCategory,
     description: string,
     co2Emissions: number
@@ -46,17 +47,17 @@ export const QuickLog = () => {
         console.error("Validation failed:", e.issues);
       }
     }
-  };
+  }, [addActivity]);
 
   return (
-    <div className="bg-card text-card-foreground border rounded-xl p-5 shadow-sm">
-      <h3 className="font-semibold text-lg mb-3" id="quick-log-heading">Quick Log</h3>
+    <article className="bg-card text-card-foreground border rounded-xl p-5 shadow-sm">
+      <h3 className="font-semibold text-lg mb-3 text-slate-800 dark:text-slate-100" id="quick-log-heading">Quick Log</h3>
       {errorMsg && (
         <div className="text-sm text-destructive mb-2" role="alert">
           {errorMsg}
         </div>
       )}
-      <div className="flex flex-col gap-2" role="group" aria-labelledby="quick-log-heading">
+      <section className="flex flex-col gap-2" role="group" aria-labelledby="quick-log-heading">
         <button
           onClick={() => handleQuickLog("transport", "10km Bus Ride", 1.05)}
           disabled={loading}
@@ -84,7 +85,7 @@ export const QuickLog = () => {
           <span>⚡ 1 Hour AC</span>
           <span className="font-medium text-xs">+0.80 kg</span>
         </button>
-      </div>
-    </div>
+      </section>
+    </article>
   );
 };

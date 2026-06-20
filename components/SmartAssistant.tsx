@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useCarbonStore } from "@/store/useCarbonStore";
 import { useAiChat } from "@/hooks/useAiChat";
 import { Send } from "lucide-react";
@@ -11,25 +11,26 @@ import { Send } from "lucide-react";
  * Uses strict custom hooks for logic and implements aria-live for screen readers.
  */
 export const SmartAssistant = () => {
-  const { activities } = useCarbonStore();
+  // Use atomic selector
+  const activities = useCarbonStore((state) => state.activities);
   const { messages, loading, sendMessage } = useAiChat(activities);
   const [input, setInput] = useState("");
 
-  const handleSend = () => {
+  const handleSend = useCallback(() => {
     sendMessage(input);
     setInput("");
-  };
+  }, [input, sendMessage]);
 
   return (
-    <div className="flex flex-col h-[500px] bg-card text-card-foreground border rounded-xl shadow-sm w-full max-w-5xl mx-auto overflow-hidden">
-      <div className="p-4 border-b bg-muted/30">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
+    <article className="flex flex-col h-[500px] bg-card text-card-foreground border rounded-xl shadow-sm w-full max-w-5xl mx-auto overflow-hidden">
+      <header className="p-4 border-b bg-muted/30">
+        <h2 className="text-xl font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-100">
           <span>🌿</span> Smart Assistant
         </h2>
-        <p className="text-xs text-muted-foreground" id="assistant-desc">Context-aware recommendations</p>
-      </div>
+        <p className="text-xs text-slate-700 dark:text-slate-300" id="assistant-desc">Context-aware recommendations</p>
+      </header>
       
-      <div 
+      <section 
         className="flex-1 p-4 overflow-y-auto flex flex-col gap-3"
         aria-live="polite"
         aria-atomic="false"
@@ -58,9 +59,9 @@ export const SmartAssistant = () => {
             </div>
           </div>
         )}
-      </div>
+      </section>
 
-      <div className="p-3 border-t bg-muted/10 flex gap-2">
+      <footer className="p-3 border-t bg-muted/10 flex gap-2">
         <label htmlFor="chat-input" className="sr-only">Type your message for the AI</label>
         <input
           id="chat-input"
@@ -70,7 +71,7 @@ export const SmartAssistant = () => {
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
           placeholder="Ask about reducing transport emissions..."
           aria-describedby="assistant-desc"
-          className="flex-1 bg-background border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+          className="flex-1 bg-background border rounded-full px-4 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
         />
         <button
           onClick={handleSend}
@@ -80,7 +81,7 @@ export const SmartAssistant = () => {
         >
           <Send size={18} />
         </button>
-      </div>
-    </div>
+      </footer>
+    </article>
   );
 };
