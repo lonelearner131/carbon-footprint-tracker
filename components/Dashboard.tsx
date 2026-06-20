@@ -74,7 +74,7 @@ export const Dashboard = () => {
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => [`${value.toFixed(2)} kg`, "Emissions"]} />
+                <Tooltip formatter={(value: any) => [`${Number(value).toFixed(2)} kg`, "Emissions"]} />
                 <Legend verticalAlign="bottom" height={36} />
               </PieChart>
             </ResponsiveContainer>
